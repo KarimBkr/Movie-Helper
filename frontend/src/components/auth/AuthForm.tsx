@@ -17,10 +17,10 @@ interface Props {
 }
 
 export default function AuthForm({ mode }: Props) {
-  const [email, setEmail] = useState('')
+  const [email, setEmail]       = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [error, setError]       = useState<string | null>(null)
+  const [loading, setLoading]   = useState(false)
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -49,67 +49,109 @@ export default function AuthForm({ mode }: Props) {
     }
   }
 
+  const isLogin = mode === 'login'
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {error && (
-        <p className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
-      )}
+    <div className="space-y-8">
 
+      {/* En-tête du formulaire */}
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-          Email
-        </label>
-        <input
-          id="email"
-          type="email"
-          required
-          autoComplete="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-        />
+        <p className="text-[0.65rem] tracking-[0.2em] uppercase text-muted mb-2">
+          {isLogin ? 'Accès plateforme' : 'Créer un accès'}
+        </p>
+        <h1 className="font-display text-3xl text-primary">
+          {isLogin ? 'Connexion' : 'Inscription'}
+        </h1>
       </div>
 
-      <div>
-        <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-          Mot de passe
-        </label>
-        <input
-          id="password"
-          type="password"
-          required
-          autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-        />
-      </div>
+      {/* Formulaire */}
+      <form onSubmit={handleSubmit} className="space-y-6">
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
-      >
-        {loading ? 'Chargement…' : mode === 'login' ? 'Se connecter' : 'Créer un compte'}
-      </button>
+        {/* Message d'erreur */}
+        {error && (
+          <div className="flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+            <svg className="mt-0.5 shrink-0 text-red-500" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <circle cx="7" cy="7" r="6.25" stroke="currentColor" strokeWidth="1.5" />
+              <line x1="7" y1="4.5" x2="7" y2="7.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              <circle cx="7" cy="10" r="0.75" fill="currentColor" />
+            </svg>
+            <p className="text-sm text-red-700 leading-snug">{error}</p>
+          </div>
+        )}
 
-      <p className="text-center text-sm text-gray-600">
-        {mode === 'login' ? (
+        {/* Champ email */}
+        <div className="space-y-1.5">
+          <label htmlFor="email" className="block text-[0.65rem] tracking-[0.18em] uppercase font-medium text-muted">
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            required
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="block w-full border-0 border-b-2 border-light bg-transparent pb-2.5 pt-1 text-base text-primary placeholder-muted/50 focus:border-secondary focus:outline-none transition-colors"
+          />
+        </div>
+
+        {/* Champ mot de passe */}
+        <div className="space-y-1.5">
+          <label htmlFor="password" className="block text-[0.65rem] tracking-[0.18em] uppercase font-medium text-muted">
+            Mot de passe
+          </label>
+          <input
+            id="password"
+            type="password"
+            required
+            autoComplete={isLogin ? 'current-password' : 'new-password'}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="block w-full border-0 border-b-2 border-light bg-transparent pb-2.5 pt-1 text-base text-primary placeholder-muted/50 focus:border-secondary focus:outline-none transition-colors"
+          />
+        </div>
+
+        {/* Bouton */}
+        <button
+          type="submit"
+          disabled={loading}
+          className="group mt-2 flex w-full items-center justify-between rounded-lg bg-primary px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-secondary disabled:opacity-50"
+        >
+          <span>{loading ? 'Chargement…' : isLogin ? 'Se connecter' : 'Créer un compte'}</span>
+          {!loading && (
+            <svg className="transition-transform group-hover:translate-x-1" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
+          {loading && (
+            <svg className="animate-spin" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5" strokeOpacity="0.3" />
+              <path d="M8 2a6 6 0 0 1 6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+          )}
+        </button>
+
+      </form>
+
+      {/* Lien bas de formulaire */}
+      <p className="text-sm text-muted">
+        {isLogin ? (
           <>
             Pas encore de compte ?{' '}
-            <Link href="/register" className="font-medium text-indigo-600 hover:text-indigo-500">
-              Créer un compte
+            <Link href="/register" className="font-medium text-primary hover:text-secondary transition-colors">
+              Créer un accès
             </Link>
           </>
         ) : (
           <>
             Déjà un compte ?{' '}
-            <Link href="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+            <Link href="/login" className="font-medium text-primary hover:text-secondary transition-colors">
               Se connecter
             </Link>
           </>
         )}
       </p>
-    </form>
+
+    </div>
   )
 }

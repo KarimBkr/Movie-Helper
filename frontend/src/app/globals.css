@@ -1,1 +1,14 @@
 @import "tailwindcss";
+
+@theme {
+  /* Palette */
+  --color-primary:   #3D52A0;
+  --color-secondary: #7091E6;
+  --color-muted:     #8697C4;
+  --color-light:     #ADBBDA;
+  --color-surface:   #EDE8F5;
+
+  /* Typographie — les variables sont injectées par next/font sur <html> */
+  --font-display: var(--font-dm-serif), Georgia, serif;
+  --font-body:    var(--font-dm-sans), system-ui, sans-serif;
+}
