@@ -1,0 +1,164 @@
+{
+  "name": "extract_sequence_breakdown",
+  "description": "Extract sequence breakdown data from a screenplay scene",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "sequence": {
+        "type": "object",
+        "properties": {
+          "scene_number": {
+            "type": "string",
+            "description": "Scene number from the screenplay"
+          },
+          "resume": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "string",
+                "description": "Brief resume of the scene"
+              },
+              "source_text": {
+                "type": "string",
+                "description": "Source text from screenplay"
+              },
+              "confidence": {
+                "type": "string",
+                "enum": ["high", "medium", "low"],
+                "description": "Confidence level"
+              }
+            },
+            "required": ["value", "source_text", "confidence"]
+          },
+          "decor": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "string",
+                "description": "Location/decor"
+              },
+              "source_text": {
+                "type": "string",
+                "description": "Source text"
+              },
+              "confidence": {
+                "type": "string",
+                "enum": ["high", "medium", "low"]
+              }
+            },
+            "required": ["value", "source_text", "confidence"]
+          },
+          "int_ext": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "string",
+                "enum": ["INT", "EXT", "INT/EXT"],
+                "description": "Interior/Exterior"
+              },
+              "source_text": {
+                "type": "string"
+              },
+              "confidence": {
+                "type": "string",
+                "enum": ["high", "medium", "low"]
+              }
+            },
+            "required": ["value", "source_text", "confidence"]
+          },
+          "jour_nuit": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "string",
+                "enum": ["JOUR", "NUIT", "AUBE", "DUSK"],
+                "description": "Day/night"
+              },
+              "source_text": {
+                "type": "string"
+              },
+              "confidence": {
+                "type": "string",
+                "enum": ["high", "medium", "low"]
+              }
+            },
+            "required": ["value", "source_text", "confidence"]
+          },
+          "huitiemes": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": "number",
+                "description": "Eighths of a page"
+              },
+              "source_text": {
+                "type": "string"
+              },
+              "confidence": {
+                "type": "string",
+                "enum": ["high", "medium", "low"]
+              }
+            },
+            "required": ["value", "source_text", "confidence"]
+          }
+        },
+        "required": ["scene_number", "resume", "decor", "int_ext", "jour_nuit", "huitiemes"]
+      },
+      "elements": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "category": {
+              "type": "string",
+              "enum": [
+                "personnage",
+                "accessoire",
+                "vehicule",
+                "arme",
+                "animal",
+                "sfx_vfx",
+                "costume",
+                "continuite",
+                "flag",
+                "note"
+              ]
+            },
+            "value": {
+              "type": "string",
+              "description": "Element value"
+            },
+            "source_text": {
+              "type": "string",
+              "description": "REQUIRED: Source text from screenplay"
+            },
+            "confidence": {
+              "type": "string",
+              "enum": ["high", "medium", "low"]
+            },
+            "note": {
+              "type": "string",
+              "description": "Optional notes"
+            }
+          },
+          "required": ["category", "value", "source_text", "confidence"]
+        }
+      },
+      "flags": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Optional flags for special attention"
+      },
+      "notes": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Optional notes about the scene"
+      }
+    },
+    "required": ["sequence", "elements", "flags", "notes"]
+  }
+}
