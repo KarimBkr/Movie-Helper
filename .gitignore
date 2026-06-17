@@ -20,3 +20,4 @@ vendor/
 
 # Confidential documentation (cahier des charges)
 *.txt
+frontend/tsconfig.tsbuildinfo
