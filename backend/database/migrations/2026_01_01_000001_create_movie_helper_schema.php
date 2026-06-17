@@ -5,6 +5,40 @@ use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
+    /**
+     * Colonnes referencant auth.users — FK ajoutees uniquement sur Supabase.
+     * En local/CI ces colonnes restent en uuid simple (Laravel garde l'integrite des ecritures).
+     *
+     * @var array<string, array<int, string>>
+     */
+    private array $authUserForeignKeys = [
+        'profiles' => ['id'],
+        'projects' => ['owner_id'],
+        'project_members' => ['user_id'],
+        'scripts' => ['uploaded_by'],
+        'sequences' => ['validated_by'],
+        'sequence_elements' => ['created_by', 'updated_by'],
+        'analysis_jobs' => ['requested_by'],
+        'exports' => ['requested_by'],
+    ];
+
+    /**
+     * Regle ON DELETE par colonne pour les FK auth.users.
+     *
+     * @var array<string, string>
+     */
+    private array $authUserOnDelete = [
+        'profiles.id' => 'cascade',
+        'projects.owner_id' => 'restrict',
+        'project_members.user_id' => 'cascade',
+        'scripts.uploaded_by' => 'restrict',
+        'sequences.validated_by' => 'set null',
+        'sequence_elements.created_by' => 'set null',
+        'sequence_elements.updated_by' => 'set null',
+        'analysis_jobs.requested_by' => 'restrict',
+        'exports.requested_by' => 'restrict',
+    ];
+
     public function up(): void
     {
         DB::statement('create extension if not exists "pgcrypto"');
@@ -22,10 +56,11 @@ return new class extends Migration
         DB::statement("create type public.analysis_job_status as enum ('pending','running','completed','partial','failed','cancelled')");
         DB::statement("create type public.analysis_item_status as enum ('pending','running','completed','failed','skipped')");
 
-        // Tables
+        // Tables — les colonnes pointant vers auth.users sont en uuid simple ici.
+        // Les FK auth.users sont ajoutees plus bas, uniquement sur Supabase.
         DB::statement('
             create table public.profiles (
-                id uuid primary key references auth.users(id) on delete cascade,
+                id uuid primary key,
                 email text not null,
                 display_name text,
                 created_at timestamptz not null default now(),
@@ -40,7 +75,7 @@ return new class extends Migration
                 slug text not null,
                 type public.project_type not null,
                 shooting_day_duration integer not null default 600,
-                owner_id uuid not null references auth.users(id) on delete restrict,
+                owner_id uuid not null,
                 status public.project_status not null default \'active\',
                 created_at timestamptz not null default now(),
                 updated_at timestamptz not null default now(),
@@ -55,7 +90,7 @@ return new class extends Migration
             create table public.project_members (
                 id uuid primary key default gen_random_uuid(),
                 project_id uuid not null references public.projects(id) on delete cascade,
-                user_id uuid not null references auth.users(id) on delete cascade,
+                user_id uuid not null,
                 role public.project_member_role not null,
                 created_at timestamptz not null default now(),
                 unique (project_id, user_id)
@@ -66,7 +101,7 @@ return new class extends Migration
             create table public.scripts (
                 id uuid primary key default gen_random_uuid(),
                 project_id uuid not null references public.projects(id) on delete cascade,
-                uploaded_by uuid not null references auth.users(id) on delete restrict,
+                uploaded_by uuid not null,
                 file_name text not null,
                 storage_bucket text not null default \'fdx-files\',
                 storage_path text not null,
@@ -104,7 +139,7 @@ return new class extends Migration
                 created_at timestamptz not null default now(),
                 updated_at timestamptz not null default now(),
                 validated_at timestamptz,
-                validated_by uuid references auth.users(id) on delete set null,
+                validated_by uuid,
                 constraint sequences_display_order_positive check (display_order > 0),
                 constraint sequences_raw_text_not_empty check (char_length(trim(raw_text)) > 0),
                 constraint sequences_huitiemes_valid check (huitiemes is null or huitiemes >= 0)
@@ -122,8 +157,8 @@ return new class extends Migration
                 confidence public.confidence_level not null default \'medium\',
                 status public.element_status not null default \'ia\',
                 note text,
-                created_by uuid references auth.users(id) on delete set null,
-                updated_by uuid references auth.users(id) on delete set null,
+                created_by uuid,
+                updated_by uuid,
                 created_at timestamptz not null default now(),
                 updated_at timestamptz not null default now(),
                 deleted_at timestamptz,
@@ -140,7 +175,7 @@ return new class extends Migration
                 id uuid primary key default gen_random_uuid(),
                 project_id uuid not null references public.projects(id) on delete cascade,
                 script_id uuid not null references public.scripts(id) on delete cascade,
-                requested_by uuid not null references auth.users(id) on delete restrict,
+                requested_by uuid not null,
                 status public.analysis_job_status not null default \'pending\',
                 total_sequences integer not null default 0,
                 processed_sequences integer not null default 0,
@@ -184,7 +219,7 @@ return new class extends Migration
             create table public.exports (
                 id uuid primary key default gen_random_uuid(),
                 project_id uuid not null references public.projects(id) on delete cascade,
-                requested_by uuid not null references auth.users(id) on delete restrict,
+                requested_by uuid not null,
                 storage_bucket text,
                 storage_path text,
                 file_name text not null,
@@ -241,7 +276,7 @@ return new class extends Migration
             ");
         }
 
-        // Auto-create owner membership on project insert
+        // Auto-create owner membership on project insert (n'utilise que new.owner_id, pas auth.uid())
         DB::statement('
             create or replace function public.create_owner_membership()
             returns trigger language plpgsql security definer set search_path = public as $$
@@ -260,7 +295,28 @@ return new class extends Migration
             for each row execute function public.create_owner_membership()
         ');
 
-        // RLS helper functions
+        // ------------------------------------------------------------------
+        // Groupe Supabase uniquement : objets dependant de auth.users / auth.uid()
+        // et de storage.objects. Ignores en local/CI ou ces objets n'existent pas.
+        // Active via DB_IS_SUPABASE=true (config supabase.is_supabase).
+        // ------------------------------------------------------------------
+        if (! config('supabase.is_supabase')) {
+            return;
+        }
+
+        // FK vers auth.users
+        foreach ($this->authUserForeignKeys as $table => $columns) {
+            foreach ($columns as $column) {
+                $onDelete = $this->authUserOnDelete["{$table}.{$column}"];
+                DB::statement("
+                    alter table public.{$table}
+                    add constraint {$table}_{$column}_auth_users_fk
+                    foreign key ({$column}) references auth.users(id) on delete {$onDelete}
+                ");
+            }
+        }
+
+        // RLS helper functions (referencent auth.uid())
         DB::statement('
             create or replace function public.is_project_member(p_project_id uuid)
             returns boolean language sql security definer stable set search_path = public as $$
@@ -367,12 +423,22 @@ return new class extends Migration
 
     public function down(): void
     {
-        // Storage policies
-        foreach (['storage_fdx_select_members','storage_fdx_insert_owner','storage_fdx_update_owner','storage_fdx_delete_owner','storage_exports_select_members','storage_exports_insert_members','storage_exports_delete_owner'] as $policy) {
-            DB::statement("drop policy if exists \"{$policy}\" on storage.objects");
+        // Objets Supabase uniquement — supprimes seulement s'ils ont ete crees.
+        if (config('supabase.is_supabase')) {
+            // Storage policies
+            foreach (['storage_fdx_select_members', 'storage_fdx_insert_owner', 'storage_fdx_update_owner', 'storage_fdx_delete_owner', 'storage_exports_select_members', 'storage_exports_insert_members', 'storage_exports_delete_owner'] as $policy) {
+                DB::statement("drop policy if exists \"{$policy}\" on storage.objects");
+            }
+
+            // FK auth.users
+            foreach ($this->authUserForeignKeys as $table => $columns) {
+                foreach ($columns as $column) {
+                    DB::statement("alter table if exists public.{$table} drop constraint if exists {$table}_{$column}_auth_users_fk");
+                }
+            }
         }
 
-        // Application tables (reverse order)
+        // Application tables (reverse order) — cascade supprime RLS policies + triggers attaches
         DB::statement('drop table if exists public.exports cascade');
         DB::statement('drop table if exists public.analysis_job_items cascade');
         DB::statement('drop table if exists public.analysis_jobs cascade');
@@ -384,12 +450,12 @@ return new class extends Migration
         DB::statement('drop table if exists public.profiles cascade');
 
         // Functions
-        foreach (['set_updated_at','create_owner_membership','is_project_member','is_project_owner','can_read_project','can_write_project','storage_project_id_from_path'] as $fn) {
+        foreach (['set_updated_at', 'create_owner_membership', 'is_project_member', 'is_project_owner', 'can_read_project', 'can_write_project', 'storage_project_id_from_path'] as $fn) {
             DB::statement("drop function if exists public.{$fn} cascade");
         }
 
         // Enum types
-        foreach (['project_type','project_status','project_member_role','script_parse_status','sequence_status','sequence_parse_status','element_category','element_status','confidence_level','analysis_job_status','analysis_item_status'] as $type) {
+        foreach (['project_type', 'project_status', 'project_member_role', 'script_parse_status', 'sequence_status', 'sequence_parse_status', 'element_category', 'element_status', 'confidence_level', 'analysis_job_status', 'analysis_item_status'] as $type) {
             DB::statement("drop type if exists public.{$type} cascade");
         }
     }

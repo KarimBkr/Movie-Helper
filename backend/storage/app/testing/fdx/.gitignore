@@ -1,0 +1,6 @@
+# Les vrais scenarios FDX (potentiellement confidentiels) restent locaux.
+*.fdx
+# On garde la structure du dossier et la fixture d'exemple partagee.
+!.gitignore
+!.gitkeep
+!*.fdx.example

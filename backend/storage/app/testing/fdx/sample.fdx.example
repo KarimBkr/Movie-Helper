@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<FinalDraft DocumentType="Script" Template="No Template" Version="5">
+  <Content>
+    <Paragraph Number="1" Type="Scene Heading">
+      <SceneProperties Length="0:30" Page="1" Title="">
+        <SceneArc/>
+      </SceneProperties>
+      <Text>INT. APPARTEMENT MARC - NUIT</Text>
+    </Paragraph>
+    <Paragraph Type="Action">
+      <Text>Marc pose le revolver sur la table. La pluie frappe les vitres.</Text>
+    </Paragraph>
+    <Paragraph Type="Action">
+      <Text>Lea entre dans l'appartement, trempee.</Text>
+    </Paragraph>
+    <Paragraph Type="Character">
+      <Text>LEA</Text>
+    </Paragraph>
+    <Paragraph Type="Parenthetical">
+      <Text>(essoufflee)</Text>
+    </Paragraph>
+    <Paragraph Type="Dialogue">
+      <Text>Tu n'aurais jamais du </Text>
+      <Text Style="Italic">le</Text>
+      <Text> garder.</Text>
+    </Paragraph>
+    <Paragraph Type="Character">
+      <Text>MARC</Text>
+    </Paragraph>
+    <Paragraph Type="Dialogue">
+      <Text>Trop tard.</Text>
+    </Paragraph>
+    <Paragraph Type="Transition">
+      <Text>CUT TO:</Text>
+    </Paragraph>
+    <Paragraph Number="2" Type="Scene Heading">
+      <SceneProperties Length="1:15" Page="1" Title="">
+        <SceneArc/>
+      </SceneProperties>
+      <Text>EXT. RUE DESERTE - NUIT</Text>
+    </Paragraph>
+    <Paragraph Type="Action">
+      <Text>Une voiture noire demarre en trombe. Un chien aboie au loin.</Text>
+    </Paragraph>
+  </Content>
+</FinalDraft>

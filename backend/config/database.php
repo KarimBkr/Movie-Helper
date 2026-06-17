@@ -16,7 +16,23 @@ return [
             'prefix' => '',
             'prefix_indexes' => true,
             'search_path' => 'public',
-            'sslmode' => env('DB_SSLMODE', 'require'),
+            // prefer par defaut pour Postgres local sans TLS ; Supabase met DB_SSLMODE=require.
+            'sslmode' => env('DB_SSLMODE', 'prefer'),
+        ],
+
+        // Connexion dediee aux tests : base Postgres locale separee, jamais Supabase.
+        'pgsql_testing' => [
+            'driver' => 'pgsql',
+            'host' => env('DB_TEST_HOST', '127.0.0.1'),
+            'port' => env('DB_TEST_PORT', '5432'),
+            'database' => env('DB_TEST_DATABASE', 'movie_helper_test'),
+            'username' => env('DB_TEST_USERNAME', env('DB_USERNAME', 'postgres')),
+            'password' => env('DB_TEST_PASSWORD', env('DB_PASSWORD', '')),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => 'public',
+            'sslmode' => env('DB_TEST_SSLMODE', 'prefer'),
         ],
     ],
 
