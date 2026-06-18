@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\Casts\PostgresTextArray;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Sequence extends Model
 {
@@ -33,7 +35,7 @@ class Sequence extends Model
     protected $casts = [
         'display_order' => 'integer',
         'huitiemes' => 'decimal:2',
-        'flags' => 'array',
+        'flags' => PostgresTextArray::class,
         'validated_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
@@ -47,5 +49,13 @@ class Sequence extends Model
     public function script(): BelongsTo
     {
         return $this->belongsTo(Script::class);
+    }
+
+    /**
+     * Éléments à dépouiller (hors soft-deleted, via le scope SoftDeletes du modèle).
+     */
+    public function elements(): HasMany
+    {
+        return $this->hasMany(SequenceElement::class);
     }
 }

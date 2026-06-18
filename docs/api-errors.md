@@ -25,6 +25,8 @@
 | `ANALYSIS_ALREADY_RUNNING` | 409 | Analyse IA déjà en cours |
 | `ANALYSIS_NOT_FOUND` | 404 | Job d'analyse inexistant (L-06) |
 | `CLAUDE_TOOL_USE_FAILED` | 500 | Appel Claude échoué (tool use) |
+| `SEQUENCE_NOT_FOUND` | 404 | Séquence inexistante (L-08) |
+| `ELEMENT_NOT_FOUND` | 404 | Élément de dépouillement inexistant (L-08) |
 | `INVALID_SEQUENCE_ELEMENT` | 422 | Élément séquence invalide |
 | `MISSING_SOURCE_TEXT` | 422 | source_text requis pour élément IA |
 | `MEMBER_ALREADY_EXISTS` | 409 | Utilisateur déjà membre du projet |
