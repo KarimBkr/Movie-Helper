@@ -42,9 +42,9 @@ class ClaudeAnalysisService
         }
 
         $response = $this->send($this->buildPayload($sequenceText));
-        $input = $this->extractToolInput($response);
+        [$toolUseId, $input] = $this->extractToolUse($response);
 
-        return SequenceBreakdown::fromToolInput($input);
+        return SequenceBreakdown::fromToolInput($input, $toolUseId);
     }
 
     /**
@@ -78,15 +78,15 @@ class ClaudeAnalysisService
     }
 
     /**
-     * Trouve le bloc tool_use du bon outil et renvoie son `input`.
+     * Trouve le bloc tool_use du bon outil et renvoie [id, input].
      * Aucun fallback sur du JSON libre (règle 3 de CLAUDE.md).
      *
      * @param  array<string,mixed>  $response
-     * @return array<string,mixed>
+     * @return array{0:?string,1:array<string,mixed>}
      *
      * @throws ClaudeException
      */
-    private function extractToolInput(array $response): array
+    private function extractToolUse(array $response): array
     {
         $content = $response['content'] ?? null;
 
@@ -113,7 +113,9 @@ class ClaudeAnalysisService
                 throw ClaudeException::toolUseFailed('bloc tool_use sans input exploitable.');
             }
 
-            return $input;
+            $id = isset($block['id']) ? (string) $block['id'] : null;
+
+            return [$id, $input];
         }
 
         throw ClaudeException::toolUseFailed('aucun bloc tool_use '.SequenceBreakdownTool::NAME.' dans la réponse.');

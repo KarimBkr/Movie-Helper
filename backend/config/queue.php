@@ -27,6 +27,16 @@ return [
         ],
     ],
 
+    // Analyse IA (CLAUDE.md règle 5) : file dédiée, max 2 workers en prod,
+    // 2 tentatives, backoff 30s. Le nombre de workers est appliqué au lancement
+    // de queue:work, pas ici.
+    'ai' => [
+        'queue' => env('AI_QUEUE_NAME', 'ai'),
+        'tries' => (int) env('AI_JOB_TRIES', 2),
+        'backoff' => (int) env('AI_JOB_BACKOFF_SECONDS', 30),
+        'max_workers' => (int) env('AI_QUEUE_MAX_WORKERS', 2),
+    ],
+
     'batching' => [
         'database' => env('DB_CONNECTION', 'pgsql'),
         'table' => 'job_batches',

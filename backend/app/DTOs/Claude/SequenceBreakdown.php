@@ -28,6 +28,8 @@ readonly class SequenceBreakdown
         public array $rejectedElements,
         public array $flags,
         public array $notes,
+        public ?string $toolUseId = null,
+        public array $rawInput = [],
     ) {}
 
     /**
@@ -37,7 +39,7 @@ readonly class SequenceBreakdown
      *
      * @throws ClaudeException si la structure attendue est absente.
      */
-    public static function fromToolInput(array $input): self
+    public static function fromToolInput(array $input, ?string $toolUseId = null): self
     {
         if (! isset($input['sequence']) || ! is_array($input['sequence'])) {
             throw ClaudeException::toolUseFailed('Réponse Claude sans bloc « sequence » exploitable.');
@@ -76,6 +78,8 @@ readonly class SequenceBreakdown
             rejectedElements: $rejected,
             flags: self::asStringList($input['flags'] ?? []),
             notes: self::asStringList($input['notes'] ?? []),
+            toolUseId: $toolUseId,
+            rawInput: $input,
         );
     }
 
