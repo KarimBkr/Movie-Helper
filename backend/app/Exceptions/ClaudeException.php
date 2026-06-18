@@ -16,7 +16,7 @@ class ClaudeException extends ApiException
         return new self(
             "L'analyse IA a échoué : {$reason}",
             'CLAUDE_TOOL_USE_FAILED',
-            502,
+            500,
         );
     }
 
@@ -25,7 +25,7 @@ class ClaudeException extends ApiException
         return new self(
             'La clé API Anthropic est absente de la configuration.',
             'CLAUDE_TOOL_USE_FAILED',
-            502,
+            500,
         );
     }
 }
