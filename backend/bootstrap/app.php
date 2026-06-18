@@ -13,7 +13,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'auth.supabase' => \App\Http\Middleware\AuthenticateSupabaseUser::class,
+            'auth.supabase'   => \App\Http\Middleware\AuthenticateSupabaseUser::class,
+            'project.member'  => \App\Http\Middleware\EnsureProjectMember::class,
+            'project.owner'   => \App\Http\Middleware\EnsureProjectOwner::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -46,29 +46,8 @@ class ProjectController extends Controller
 
     public function show(Request $request, string $id): JsonResponse
     {
-        $userId = $request->attributes->get('auth_user')->id;
-
-        $member = ProjectMember::where('project_id', $id)
-            ->where('user_id', $userId)
-            ->first();
-
-        if (! $member) {
-            return response()->json([
-                'message' => 'Projet introuvable.',
-                'code'    => 'PROJECT_NOT_FOUND',
-                'errors'  => [],
-            ], 404);
-        }
-
-        $project = Project::where('id', $id)->where('status', 'active')->first();
-
-        if (! $project) {
-            return response()->json([
-                'message' => 'Projet introuvable.',
-                'code'    => 'PROJECT_NOT_FOUND',
-                'errors'  => [],
-            ], 404);
-        }
+        $project = $request->attributes->get('project');
+        $member  = $request->attributes->get('project_member');
 
         return response()->json(['data' => $this->formatProject($project, $member)]);
     }
