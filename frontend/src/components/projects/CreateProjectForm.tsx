@@ -7,7 +7,11 @@ import { createProject, PROJECT_TYPE_LABELS, type ProjectType } from '@/lib/api/
 
 const PROJECT_TYPES = Object.entries(PROJECT_TYPE_LABELS) as [ProjectType, string][]
 
-export default function CreateProjectForm() {
+interface Props {
+  variant?: 'default' | 'light'
+}
+
+export default function CreateProjectForm({ variant = 'default' }: Props) {
   const [open, setOpen]       = useState(false)
   const [title, setTitle]     = useState('')
   const [type, setType]       = useState<ProjectType>('film')
@@ -42,13 +46,14 @@ export default function CreateProjectForm() {
     }
   }
 
+  const triggerClass = variant === 'light'
+    ? 'flex items-center gap-2 rounded-lg bg-white px-5 py-3 text-sm font-semibold text-primary transition-colors hover:bg-light'
+    : 'flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-secondary'
+
   return (
     <>
-      <button
-        onClick={() => setOpen(true)}
-        className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-secondary active:bg-secondary/90"
-      >
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+      <button onClick={() => setOpen(true)} className={triggerClass}>
+        <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true">
           <path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
         </svg>
         Nouveau projet
@@ -56,68 +61,83 @@ export default function CreateProjectForm() {
 
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-primary/60 p-4 backdrop-blur-sm"
           onClick={(e) => e.target === e.currentTarget && reset()}
         >
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <h2 className="font-display text-2xl text-primary mb-5">Nouveau projet</h2>
+          <div className="w-full max-w-md rounded-2xl overflow-hidden shadow-2xl">
 
-            {error && (
-              <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                {error}
+            {/* En-tête modal — même DA primary */}
+            <div className="bg-primary px-6 py-5 relative overflow-hidden">
+              <div
+                aria-hidden="true"
+                className="absolute -right-2 top-1/2 -translate-y-1/2 font-display leading-none text-white/5 select-none pointer-events-none text-[6rem]"
+              >
+                MH
               </div>
-            )}
+              <h2 className="relative font-display text-2xl text-white">Nouveau projet</h2>
+              <p className="relative mt-0.5 text-sm text-light/70">Renseignez les informations de base.</p>
+            </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-1.5">
-                <label htmlFor="proj-title" className="block text-sm font-medium text-primary">
-                  Titre
-                </label>
-                <input
-                  id="proj-title"
-                  type="text"
-                  required
-                  autoFocus
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Mon film"
-                  className="block w-full rounded-lg border border-light bg-surface/40 px-4 py-3 text-base text-primary placeholder-muted/60 transition-colors focus:border-secondary focus:bg-white focus:outline-none focus:ring-2 focus:ring-secondary/20"
-                />
-              </div>
+            {/* Corps du modal */}
+            <div className="bg-white px-6 py-6">
+              {error && (
+                <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {error}
+                </div>
+              )}
 
-              <div className="space-y-1.5">
-                <label htmlFor="proj-type" className="block text-sm font-medium text-primary">
-                  Type
-                </label>
-                <select
-                  id="proj-type"
-                  value={type}
-                  onChange={(e) => setType(e.target.value as ProjectType)}
-                  className="block w-full rounded-lg border border-light bg-surface/40 px-4 py-3 text-base text-primary transition-colors focus:border-secondary focus:bg-white focus:outline-none focus:ring-2 focus:ring-secondary/20"
-                >
-                  {PROJECT_TYPES.map(([value, label]) => (
-                    <option key={value} value={value}>{label}</option>
-                  ))}
-                </select>
-              </div>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label htmlFor="proj-title" className="block text-xs font-medium uppercase tracking-wider text-muted">
+                    Titre
+                  </label>
+                  <input
+                    id="proj-title"
+                    type="text"
+                    required
+                    autoFocus
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Mon film"
+                    className="block w-full rounded-lg border border-light bg-surface/40 px-4 py-3 text-base text-primary placeholder-muted/50 transition-colors focus:border-secondary focus:bg-white focus:outline-none focus:ring-2 focus:ring-secondary/20"
+                  />
+                </div>
 
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={reset}
-                  className="flex-1 rounded-lg border border-light px-4 py-2.5 text-sm font-medium text-muted transition-colors hover:border-muted hover:text-primary"
-                >
-                  Annuler
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex-1 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-secondary disabled:opacity-50"
-                >
-                  {loading ? 'Création…' : 'Créer'}
-                </button>
-              </div>
-            </form>
+                <div className="space-y-1.5">
+                  <label htmlFor="proj-type" className="block text-xs font-medium uppercase tracking-wider text-muted">
+                    Type
+                  </label>
+                  <select
+                    id="proj-type"
+                    value={type}
+                    onChange={(e) => setType(e.target.value as ProjectType)}
+                    className="block w-full rounded-lg border border-light bg-surface/40 px-4 py-3 text-base text-primary transition-colors focus:border-secondary focus:bg-white focus:outline-none focus:ring-2 focus:ring-secondary/20"
+                  >
+                    {PROJECT_TYPES.map(([value, label]) => (
+                      <option key={value} value={value}>{label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={reset}
+                    className="flex-1 rounded-lg border border-light px-4 py-2.5 text-sm font-medium text-muted transition-colors hover:border-muted hover:text-primary"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="flex-1 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-secondary disabled:opacity-50"
+                  >
+                    {loading ? 'Création…' : 'Créer'}
+                  </button>
+                </div>
+              </form>
+            </div>
+
           </div>
         </div>
       )}
