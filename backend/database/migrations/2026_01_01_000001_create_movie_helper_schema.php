@@ -6,6 +6,16 @@ use Illuminate\Support\Facades\DB;
 return new class extends Migration
 {
     /**
+     * Types enum du schema, dans l'ordre. Listes une seule fois pour pouvoir
+     * les supprimer (rejouabilite migrate:fresh) en up() comme en down().
+     */
+    private const ENUM_TYPES = [
+        'project_type', 'project_status', 'project_member_role', 'script_parse_status',
+        'sequence_status', 'sequence_parse_status', 'element_category', 'element_status',
+        'confidence_level', 'analysis_job_status', 'analysis_item_status',
+    ];
+
+    /**
      * Colonnes referencant auth.users — FK ajoutees uniquement sur Supabase.
      * En local/CI ces colonnes restent en uuid simple (Laravel garde l'integrite des ecritures).
      *
@@ -42,6 +52,12 @@ return new class extends Migration
     public function up(): void
     {
         DB::statement('create extension if not exists "pgcrypto"');
+
+        // migrate:fresh (db:wipe) supprime les tables mais PAS les types enum.
+        // On les supprime d'abord pour que la migration reste rejouable (tests).
+        foreach (self::ENUM_TYPES as $type) {
+            DB::statement("drop type if exists public.{$type} cascade");
+        }
 
         // Enum types
         DB::statement("create type public.project_type as enum ('film','serie','court_metrage','pilote','autre')");
@@ -455,7 +471,7 @@ return new class extends Migration
         }
 
         // Enum types
-        foreach (['project_type', 'project_status', 'project_member_role', 'script_parse_status', 'sequence_status', 'sequence_parse_status', 'element_category', 'element_status', 'confidence_level', 'analysis_job_status', 'analysis_item_status'] as $type) {
+        foreach (self::ENUM_TYPES as $type) {
             DB::statement("drop type if exists public.{$type} cascade");
         }
     }
